@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using FPSGame.Jobs;
 using FPSGame.Items;
 using System;
+using System.Numerics;
 
 namespace FPSGame
 {
@@ -14,91 +15,69 @@ namespace FPSGame
 	public partial class FPSPlayer : AnimatedEntity
 {
 
-	[Net, Predicted] public Weapon ActiveWeapon { get; set; }
+	
 	[ClientInput] public Vector3 InputDirection { get; set; }
 	[ClientInput] public Angles ViewAngles { get; set; }
-
-	public DamageInfo LastDamage;
-		/// <summary>
-		/// Position a player should be looking from in world space.
-		/// </summary>
-		[Browsable( false )]
-	public Vector3 EyePosition
+	[Browsable( false )] public Vector3 EyePosition
 	{
 		get => Transform.PointToWorld( EyeLocalPosition );
 		set => EyeLocalPosition = Transform.PointToLocal( value );
 	}
-
-	/// <summary>
-	/// Position a player should be looking from in local to the entity coordinates.
-	/// </summary>
-	[Net, Predicted, Browsable( false )]
-	public Vector3 EyeLocalPosition { get; set; }
-
-	/// <summary>
-	/// Rotation of the entity's "eyes", i.e. rotation for the camera when this entity is used as the view entity.
-	/// </summary>
-	[Browsable( false )]
-	public Rotation EyeRotation
+	[Browsable( false )] public Rotation EyeRotation
 	{
 		get => Transform.RotationToWorld( EyeLocalRotation );
 		set => EyeLocalRotation = Transform.RotationToLocal( value );
 	}
+	[Net, Predicted, Browsable( false )]  public Vector3 EyeLocalPosition { get; set; }
 
-	/// <summary>
-	/// Rotation of the entity's "eyes", i.e. rotation for the camera when this entity is used as the view entity. In local to the entity coordinates.
-	/// </summary>
-	[Net, Predicted, Browsable( false )]
-	public Rotation EyeLocalRotation { get; set; }
+	[Net, Predicted, Browsable( false )]  public Rotation EyeLocalRotation { get; set; }
+	public override Ray AimRay => new Ray( EyePosition, EyeRotation.Forward );
+
+
+
+
+
+
+
+
+	public DamageInfo LastDamage;
 
 	public BBox Hull
 	{
-		get => new
-		(
-			new Vector3( -16, -16, 0 ),
-			new Vector3( 16, 16, 64 )
-		);
+	get => new
+	(
+		new Vector3( -16, -16, 0 ),
+		new Vector3( 16, 16, 64 )
+	);
 	}
-
 	[BindComponent] public PlayerController Controller { get; }
 	[BindComponent] public PlayerAnimator Animator { get; }
 
-	public override Ray AimRay => new Ray( EyePosition, EyeRotation.Forward );
+	
+
+
+
+
 
 
 	public FPSPlayer( )
 		{
-			
 			Ammo = new List<int>();
 		}
 		
 
-
-
-
-		/// <summary>
-		/// Called when the entity is first created 
-		/// </summary>
+	
 		public override void Spawn()
 	{
-		
-		
-
 		base.Spawn();
 		Tags.Add( "player" );
-
 
 		Setjob( new Citizen());
 		Money = 13239;
 
 	}
 
-	public void SetActiveWeapon( Weapon weapon )
-	{
-		ActiveWeapon?.OnHolster();
-		ActiveWeapon = weapon;
-		ActiveWeapon.OnEquip( this );
-	}
+	
 
 
 		public virtual void Respawn()
@@ -119,11 +98,12 @@ namespace FPSGame
 
 			GameManager.Current?.MoveToSpawnpoint( this );
 			ResetInterpolation();
+			
 
-			SetActiveWeapon( new Fists() );
 			GiveAmmo( AmmoType.Pistol, 100 );
 			Tags.Add( "player" );
-
+			FirstWeapon = new BasePistol();
+			SecondWeapon = new Fists();
 			Health = 100;
 			Armor = 50;
 			Hunger = 100;
@@ -150,7 +130,18 @@ namespace FPSGame
 		ActiveWeapon?.Simulate( cl );
 		EyeLocalPosition = Vector3.Up * (64f * Scale);
 
+			if ( Input.Pressed( "view" ) )
+			{
 
+				
+				ShootEnt();
+			}
+			if ( Input.Pressed( "Slot1" ) )
+			{
+
+				SwitchWeapon();
+			
+			}
 
 			if ( LifeState == LifeState.Dead )
 			{
@@ -165,19 +156,17 @@ namespace FPSGame
 		}
 
 
+		
+
 		public override void OnKilled()
 	{
 
-			//GameManager.Current?.OnKilled( this );
+		GameManager.Current?.OnKilled( this );
 
 		timeSinceDied = 0;
 		LifeState = LifeState.Dead;
-
-		//var weapon = ActiveWeapon as Weapon;
-		//weapon.Delete();
 		EnableAllCollisions = false;
 		EnableDrawing = false;
-		//CameraMode = new DeathCamera();
 		base.OnKilled();
 		BecomeRagdollOnClient( LastDamage.Force, LastDamage.BoneIndex );
 
@@ -229,7 +218,7 @@ namespace FPSGame
 		ViewAngles = viewAngles.Normal;
 	}
 
-	bool IsThirdPerson { get; set; } = false;
+
 		void ShootEnt()
 		{
 			var ent = new MoneyPrinter
@@ -258,40 +247,20 @@ namespace FPSGame
 
 		public override void FrameSimulate( IClient cl )
 	{
-		SimulateRotation();
+			SimulateRotation();
+
+		
 
 		Camera.Rotation = ViewAngles.ToRotation();
 		Camera.FieldOfView = Screen.CreateVerticalFieldOfView( Game.Preferences.FieldOfView );
 
-		if ( Input.Pressed( "view" ) )
-		{
-				ShootEnt();
-		}
+		
 
-		if ( IsThirdPerson )
-		{
-			Vector3 targetPos;
-			var pos = Position + Vector3.Up * 64;
-			var rot = Camera.Rotation * Rotation.FromAxis( Vector3.Up, -16 );
 
-			float distance = 80.0f * Scale;
-			targetPos = pos + rot.Right * ((CollisionBounds.Mins.x + 50) * Scale);
-			targetPos += rot.Forward * -distance;
 
-			var tr = Trace.Ray( pos, targetPos )
-				.WithAnyTags( "solid" )
-				.Ignore( this )
-				.Radius( 8 )
-				.Run();
-			
-			Camera.FirstPersonViewer = null;
-			Camera.Position = tr.EndPosition;
-		}
-		else
-		{
 			Camera.FirstPersonViewer = this;
 			Camera.Position = EyePosition;
-		}
+		
 	}
 
 	public TraceResult TraceBBox( Vector3 start, Vector3 end, float liftFeet = 0.0f )

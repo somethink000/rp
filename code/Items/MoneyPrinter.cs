@@ -21,7 +21,7 @@ namespace FPSGame.Items
 		{
 			base.Spawn();
 
-			PlaySound( "gun/mone" );
+			PlaySound( "mone" );
 
 		}
 

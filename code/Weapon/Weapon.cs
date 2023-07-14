@@ -30,7 +30,7 @@ public partial class Weapon : AnimatedEntity
 	public virtual float Spreed => 0.5f;
 	public virtual int Damage => 10;
 	public virtual float PrimaryRate => 5.0f;
-
+	public virtual bool CanDrop => false;
 
 
 
