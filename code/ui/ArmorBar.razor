@@ -1,0 +1,30 @@
+@using System;
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Collections.Generic;
+
+@namespace FPSGame.UI
+@attribute [StyleSheet("/ui/ArmorBar.scss")]
+@inherits Sandbox.UI.Panel
+
+
+
+
+<root>
+
+	<div class="armorfill" style="width: @(GetArmor())%"> </div>
+
+
+
+
+</root>
+
+@code {
+
+	public int GetArmor()
+	{
+		var pawn = Game.LocalPawn as FPSPlayer;
+		if (pawn == null) return 0;
+		return (int)pawn.Armor;
+	}
+}

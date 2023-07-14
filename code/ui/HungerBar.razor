@@ -1,0 +1,30 @@
+@using System;
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Collections.Generic;
+
+@namespace FPSGame.UI
+@attribute [StyleSheet("/ui/HungerBar.scss")]
+@inherits Sandbox.UI.Panel
+
+
+
+
+<root>
+
+	<div class="hungerfill" style="width: @(GetHunger())%"></div>
+
+</root>
+
+@code {
+
+
+	public int GetHunger()
+	{
+		var pawn = Game.LocalPawn as FPSPlayer;
+		if (pawn == null) return 0;
+
+		return (int)pawn.Hunger;
+	}
+
+}
