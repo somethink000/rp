@@ -15,7 +15,7 @@
 						[
 							{
 								from = "corp.vmat"
-								to = "models/items/money_printer/money_printer.vmat"
+								to = "materials/money_printer.vmat"
 							},
 						]
 						use_global_default = false
@@ -43,7 +43,7 @@
 				[
 					{
 						_class = "RenderMeshFile"
-						filename = "models/items/money_printer/money_printer.fbx"
+						filename = "models/money_printer.fbx"
 						import_translation = [ 0.0, 0.0, 0.0 ]
 						import_rotation = [ 0.0, 0.0, 0.0 ]
 						import_scale = 0.2

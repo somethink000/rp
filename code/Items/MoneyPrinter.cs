@@ -13,7 +13,7 @@ namespace FPSGame.Items
 
 	partial class MoneyPrinter : Item
 	{
-		public override string Model => "models/money_printer/money_printer.vmdl"; 
+		public override string Model => "models/money_printer.vmdl"; 
 
 
 
