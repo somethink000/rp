@@ -43,13 +43,6 @@ public partial class Fists : Weapon
 	}
 
 
-	public override void SecondaryAttack()
-	{
-
-	}
-
-
-
 	protected override void Animate()
 	{
 		Player.SetAnimParameter( "holdtype", (int)CitizenAnimationHelper.HoldTypes.Pistol );

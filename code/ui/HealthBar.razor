@@ -17,14 +17,21 @@
 </root>
 
 @code {
-  
-	
+
+
 	public int GetHealth()
 	{
 		var pawn = Game.LocalPawn as FPSPlayer;
 		if (pawn == null) return 0;
 
 		return (int)pawn.Health;
+	}
+
+
+	protected override int BuildHash()
+	{
+		var currentHealth = GetHealth();
+		return currentHealth.GetHashCode();
 	}
 
 }

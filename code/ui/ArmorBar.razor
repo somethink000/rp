@@ -27,4 +27,9 @@
 		if (pawn == null) return 0;
 		return (int)pawn.Armor;
 	}
+	protected override int BuildHash()
+	{
+		var currentArmor = GetArmor();
+		return currentArmor.GetHashCode();
+	}
 }

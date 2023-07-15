@@ -46,7 +46,7 @@ namespace FPSGame
 	{
 	get => new
 	(
-		new Vector3( -16, -16, 0 ),
+		new Vector3( -10, -10, 0 ),
 		new Vector3( 16, 16, 64 )
 	);
 	}
@@ -69,10 +69,12 @@ namespace FPSGame
 	
 		public override void Spawn()
 	{
+
 		base.Spawn();
 		Tags.Add( "player" );
-
-		Setjob( new Citizen());
+			Components.Create<PlayerController>();
+			Components.Create<PlayerAnimator>();
+			Setjob( new Citizen());
 		Money = 13239;
 
 	}
@@ -88,10 +90,10 @@ namespace FPSGame
 			EnableShadowInFirstPerson = true;
 			EnableAllCollisions = true;
 			Game.AssertServer();
-			Components.Create<PlayerController>();
-			Components.Create<PlayerAnimator>();
+			Tags.Add( "player" );
+			//Position += new Vector3(0,100,0);
 			LifeState = LifeState.Alive;
-			Velocity = Vector3.Zero;
+			//Velocity = Vector3.Zero;
 			this.ClearWaterLevel();
 			
 			CreateHull();
@@ -140,11 +142,18 @@ namespace FPSGame
 				}
 					
 			}
-			if ( Input.Pressed( "Slot1" ) )
+			if ( Input.Pressed( "Slot1" ) || Input.Pressed( "Slot1" ) )
 			{
 
 				SwitchWeapon();
 			
+			}
+
+			if ( Input.Pressed( "drop" ) )
+			{
+
+				Log.Info("daw");
+
 			}
 
 			if ( LifeState == LifeState.Dead )
@@ -251,12 +260,19 @@ namespace FPSGame
 			TakeDamage( damageInfo );
 		}
 
+
+
+
+		
+
+
+
+
 		public override void FrameSimulate( IClient cl )
 	{
 			SimulateRotation();
 
-		
-
+			
 		Camera.Rotation = ViewAngles.ToRotation();
 		Camera.FieldOfView = Screen.CreateVerticalFieldOfView( Game.Preferences.FieldOfView );
 

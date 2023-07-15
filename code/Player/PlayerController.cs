@@ -21,11 +21,12 @@ namespace FPSGame
 	public void Simulate( IClient cl )
 	{
 		ControllerEvents.Clear();
-
+		
 		var movement = Entity.InputDirection.Normal;
 		var angles = Entity.ViewAngles.WithPitch( 0 );
 		var moveVector = Rotation.From( angles ) * movement * 320f;
 		var groundEntity = CheckForGround();
+		if ( Entity.LifeState == LifeState.Dead ) return;
 		CheckFalling();
 		if ( groundEntity.IsValid() )
 		{

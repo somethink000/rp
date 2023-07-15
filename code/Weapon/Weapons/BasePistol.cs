@@ -13,15 +13,19 @@ public partial class BasePistol : Weapon
 	public override int Damage => 10;
 	public override float Spreed => 0.1f;
 	public override float PrimaryRate => 2.5f;
+	public override float AimSpeed => 3f;
 
-	
 
+	public BasePistol()
+	{
+		aimingOffset = new Vector3( -5f, 17f, 3f );
+	}
 
 	[ClientRpc]
 	protected virtual void ShootEffects()
 	{
 		Game.AssertClient();
-
+		
 		Particles.Create( "particles/pistol_muzzleflash.vpcf", EffectEntity, "muzzle" );
 
 		Player.SetAnimParameter( "b_attack", true );
@@ -43,10 +47,7 @@ public partial class BasePistol : Weapon
 	}
 
 	
-	public override void SecondaryAttack()
-	{
-		
-	}
+	
 
 
 

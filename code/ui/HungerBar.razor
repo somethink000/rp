@@ -26,5 +26,9 @@
 
 		return (int)pawn.Hunger;
 	}
-
+	protected override int BuildHash()
+	{
+		var currentHunger = GetHunger();
+		return currentHunger.GetHashCode();
+	}
 }
