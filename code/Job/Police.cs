@@ -11,7 +11,7 @@ namespace FPSGame.Jobs
 		public override JobType JobType => JobType.Citizen;
 		public override int Price => 60;
 
-		public override string JobName => "Полицейский";
+		public override string JobName => "Police";
 
 		public override string Color => "green";
 	}

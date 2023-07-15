@@ -111,7 +111,7 @@ namespace FPSGame
 	
 
 
-
+		
 	public void DressFromClient( IClient cl )
 	{
 		var c = new ClothingContainer();
@@ -122,6 +122,7 @@ namespace FPSGame
 
 
 		TimeSince timeSinceDied;
+		
 		public override void Simulate( IClient cl )
 	{
 		SimulateRotation();
@@ -130,11 +131,14 @@ namespace FPSGame
 		ActiveWeapon?.Simulate( cl );
 		EyeLocalPosition = Vector3.Up * (64f * Scale);
 
-			if ( Input.Pressed( "view" ) )
+			if ( Input.Pressed( "Flashlight" ) )
 			{
+				if ( Game.IsServer )
+				{
+					ShootEnt();
 
-				
-				ShootEnt();
+				}
+					
 			}
 			if ( Input.Pressed( "Slot1" ) )
 			{
@@ -221,12 +225,14 @@ namespace FPSGame
 
 		void ShootEnt()
 		{
+			
 			var ent = new MoneyPrinter
 			{
 				Position = EyePosition + EyeRotation.Forward * 50,
 				Rotation = EyeRotation
 
 			};
+			ent.Velocity = EyeRotation.Forward * 500;
 
 		}
 

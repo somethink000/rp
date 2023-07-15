@@ -12,7 +12,7 @@ namespace FPSGame.Jobs
 
 		public override int Price => 30;
 
-		public override string JobName => "Бандит";
+		public override string JobName => "";
 
 		public override string Color => "green";
 	}
