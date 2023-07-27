@@ -1,11 +1,10 @@
-﻿using FPSGame.Jobs;
-using Sandbox;
+﻿using Sandbox;
 using System;
 using System.Collections.Generic;
 
-namespace FPSGame
+namespace MyGame
 {
-	public partial class FPSPlayer
+	public partial class Player
     {
 		[Net] public Job PlayerJob { get; set; }
 

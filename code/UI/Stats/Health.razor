@@ -1,0 +1,95 @@
+﻿@using Sandbox;
+@using Sandbox.UI;
+@using Sandbox.UI.Construct; 
+@using System;
+
+
+@namespace MyGame
+@inherits Sandbox.UI.Panel
+
+
+<root>
+
+
+	
+	<div class="stats">
+
+		<panel class="healthbar">
+	<div class="healthfill" style="width: @(GetHealth())%"></div>
+	</panel>
+
+		
+	<panel class="armorbar">
+	<div class="armorfill" style="width: @(GetArmor())%"></div>
+	</panel>
+
+	</div>
+
+	<panel class="hungerbar">
+	<div class="hungerfill" style="width: @(GetHunger())%"></div>
+	</panel>
+
+	
+	<label @ref="PlyMoney" class="money"></label>
+
+
+</root> 
+
+
+@code {
+
+public Label PlyMoney { get; set; }
+
+
+
+	public int GetHealth()
+	{
+		var pawn = Game.LocalPawn;
+		if (pawn == null) return 0;
+
+		return (int)pawn.Health;
+	}
+
+
+	public int GetHunger()
+	{
+		var pawn = Game.LocalPawn as Player;
+		if (pawn == null) return 0;
+
+		return (int)pawn.Hunger;
+	}
+
+
+	public int GetArmor()
+	{
+		var pawn = Game.LocalPawn as Player;
+		if (pawn == null) return 0;
+		return (int)pawn.Armor;
+	}
+
+
+
+	
+
+
+	public override void Tick()
+	{
+
+		var player = Game.LocalPawn as Player;
+		if (player == null) return;
+		
+		var inv = player.Money;
+		PlyMoney.Text = $"Cash: {inv}$";
+		
+
+
+	}
+
+
+	protected override int BuildHash()
+	{
+		var currentHealth = GetHealth();
+		return currentHealth.GetHashCode();
+		
+	}
+}

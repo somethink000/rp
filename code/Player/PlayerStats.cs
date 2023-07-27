@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace FPSGame
+namespace MyGame
 {
-	public partial class FPSPlayer
+	public partial class Player
     {
 		[Net] public float Armor { get; set; }
 		[Net] public int MaxArmor { get; set; }
@@ -15,9 +15,16 @@ namespace FPSGame
 		[Net] public int Money { get; set; }
 
 
-		
+		public float TakeArmor( float amount )
+		{
+			if ( Armor == null ) return 0;
 
-		
-		
+			var available = Armor;
+			amount = Math.Min( available, amount );
+
+			Armor = available - amount;
+			return amount;
+		}
+
 	}
 }

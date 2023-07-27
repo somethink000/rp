@@ -1,316 +1,371 @@
 ﻿using Sandbox;
-using System.ComponentModel;
-using FPSGame.Weapons;
-using System.Collections.Generic;
-using FPSGame.Jobs;
-using FPSGame.Items;
 using System;
-using System.Numerics;
+using System.ComponentModel;
+using System.Linq;
 
-namespace FPSGame
+namespace MyGame;
+
+partial class Player : AnimatedEntity
 {
+	/// <summary>
+	/// Called when the entity is first created 
+	/// </summary>
+	public override void Spawn()
+	{
+		Setjob( new Citizen() );
+		Money = 13239;
 
 
-	
-	public partial class FPSPlayer : AnimatedEntity
-{
+		Event.Run( "Player.PreSpawn", this );
+		base.Spawn();
+		Velocity = Vector3.Zero;
+		Components.RemoveAll();
+		LifeState = LifeState.Alive;
+		
 
-	
+		SetModel( "models/citizen/citizen.vmdl" );
+		Components.Add( new WalkController() );
+		Components.Add( new FirstPersonCamera() );
+		Components.Add( new AmmoStorageComponent() );
+		Components.Add( new InventoryComponent() );
+		Components.Add( new CitizenAnimationComponent() );
+		Components.Add( new UseComponent() );
+		Components.Add( new FallDamageComponent() );
+		Components.Add( new UnstuckComponent() );
+		Ammo.ClearAmmo();
+		CreateHull();
+		Tags.Add( "player" );
+		EnableAllCollisions = true;
+		EnableDrawing = true;
+		EnableHideInFirstPerson = true;
+		EnableShadowInFirstPerson = true;
+		EnableTouch = true;
+		EnableLagCompensation = true;
+		Predictable = true;
+		EnableHitboxes = true;
+
+
+		Inventory.AddItem( new UspPistol() );
+		Inventory.AddItem( new Pistol() );
+		Inventory.AddItem( new Fists() );
+		Ammo.GiveAmmo( AmmoType.Pistol, 50 );
+		Health = 100;
+		Armor = 50;
+		Hunger = 100;
+
+
+		MoveToSpawnpoint();
+		Event.Run( "Player.PostSpawn", this );
+	}
+
+	/// <summary>
+	/// Respawn this player.
+	/// </summary>
+	/// 
+	public virtual void Respawn()
+	{
+		Event.Run( "Player.PreRespawn", this );
+		Spawn();
+		Event.Run( "Player.PostRespawn", this );
+	}
+
+	public virtual void MoveToSpawnpoint()
+	{
+		// Get all of the spawnpoints
+		var spawnpoints = Entity.All.OfType<SpawnPoint>();
+
+		// chose a random one
+		var randomSpawnPoint = spawnpoints.OrderBy( x => Guid.NewGuid() ).FirstOrDefault();
+
+		// if it exists, place the pawn there
+		if ( randomSpawnPoint != null )
+		{
+			var tx = randomSpawnPoint.Transform;
+			tx.Position = tx.Position + Vector3.Up * 50.0f; // raise it up
+			Transform = tx;
+		}
+	}
+	// An example BuildInput method within a player's Pawn class.
 	[ClientInput] public Vector3 InputDirection { get; set; }
 	[ClientInput] public Angles ViewAngles { get; set; }
-	[Browsable( false )] public Vector3 EyePosition
+
+	public MovementComponent MovementController => Components.Get<MovementComponent>();
+	public CameraComponent CameraController => Components.Get<CameraComponent>();
+	public AnimationComponent AnimationController => Components.Get<AnimationComponent>();
+	public InventoryComponent Inventory => Components.Get<InventoryComponent>();
+	public AmmoStorageComponent Ammo => Components.Get<AmmoStorageComponent>();
+	public UseComponent UseKey => Components.Get<UseComponent>();
+	public UnstuckComponent UnstuckController => Components.Get<UnstuckComponent>();
+
+
+	/// <summary>
+	/// Position a player should be looking from in world space.
+	/// </summary>
+	[Browsable( false )]
+	public Vector3 EyePosition
 	{
 		get => Transform.PointToWorld( EyeLocalPosition );
 		set => EyeLocalPosition = Transform.PointToLocal( value );
 	}
-	[Browsable( false )] public Rotation EyeRotation
+
+	/// <summary>
+	/// Position a player should be looking from in local to the entity coordinates.
+	/// </summary>
+	[Net, Predicted, Browsable( false )]
+	public Vector3 EyeLocalPosition { get; set; }
+
+	/// <summary>
+	/// Rotation of the entity's "eyes", i.e. rotation for the camera when this entity is used as the view entity.
+	/// </summary>
+	[Browsable( false )]
+	public Rotation EyeRotation
 	{
 		get => Transform.RotationToWorld( EyeLocalRotation );
 		set => EyeLocalRotation = Transform.RotationToLocal( value );
 	}
-	[Net, Predicted, Browsable( false )]  public Vector3 EyeLocalPosition { get; set; }
 
-	[Net, Predicted, Browsable( false )]  public Rotation EyeLocalRotation { get; set; }
-	public override Ray AimRay => new Ray( EyePosition, EyeRotation.Forward );
-
-
-
-
-
-
-
-
-	public DamageInfo LastDamage;
+	/// <summary>
+	/// Rotation of the entity's "eyes", i.e. rotation for the camera when this entity is used as the view entity. In local to the entity coordinates.
+	/// </summary>
+	[Net, Predicted, Browsable( false )]
+	public Rotation EyeLocalRotation { get; set; }
 
 	public BBox Hull
 	{
-	get => new
-	(
-		new Vector3( -10, -10, 0 ),
-		new Vector3( 16, 16, 64 )
-	);
-	}
-	[BindComponent] public PlayerController Controller { get; }
-	[BindComponent] public PlayerAnimator Animator { get; }
-
-	
-
-
-
-
-
-
-	public FPSPlayer( )
-		{
-			Ammo = new List<int>();
-		}
-		
-
-	
-		public override void Spawn()
-	{
-
-		base.Spawn();
-		Tags.Add( "player" );
-			Components.Create<PlayerController>();
-			Components.Create<PlayerAnimator>();
-			Setjob( new Citizen());
-		Money = 13239;
-
+		get => new
+		(
+			new Vector3( -16, -16, 0 ),
+			new Vector3( 16, 16, 72 )
+		);
 	}
 
-	
-
-
-		public virtual void Respawn()
-		{
-			SetModel( "models/citizen/citizen.vmdl" );
-			EnableDrawing = true;
-			EnableHideInFirstPerson = true;
-			EnableShadowInFirstPerson = true;
-			EnableAllCollisions = true;
-			Game.AssertServer();
-			Tags.Add( "player" );
-			//Position += new Vector3(0,100,0);
-			LifeState = LifeState.Alive;
-			//Velocity = Vector3.Zero;
-			this.ClearWaterLevel();
-			
-			CreateHull();
-
-			GameManager.Current?.MoveToSpawnpoint( this );
-			ResetInterpolation();
-			
-
-			GiveAmmo( AmmoType.Pistol, 100 );
-			Tags.Add( "player" );
-			FirstWeapon = new BasePistol();
-			SecondWeapon = new Fists();
-			Health = 100;
-			Armor = 50;
-			Hunger = 100;
-		}
-	
-
-
-		
-	public void DressFromClient( IClient cl )
+	public override Ray AimRay => new Ray( EyePosition, EyeRotation.Forward );
+	/// <summary>
+	/// Create a physics hull for this player. The hull stops physics objects and players passing through
+	/// the player. It's basically a big solid box. It also what hits triggers and stuff.
+	/// The player doesn't use this hull for its movement size.
+	/// </summary>
+	public virtual void CreateHull()
 	{
-		var c = new ClothingContainer();
-		c.LoadFromClient( cl );
-		c.DressEntity( this );
-	}
+		SetupPhysicsFromAABB( PhysicsMotionType.Keyframed, Hull.Mins, Hull.Maxs );
+
+		//var capsule = new Capsule( new Vector3( 0, 0, 16 ), new Vector3( 0, 0, 72 - 16 ), 32 );
+		//var phys = SetupPhysicsFromCapsule( PhysicsMotionType.Keyframed, capsule );
 
 
+		//	phys.GetBody(0).RemoveShadowController();
 
-		TimeSince timeSinceDied;
-		
-		public override void Simulate( IClient cl )
-	{
-		SimulateRotation();
-		Controller?.Simulate( cl );
-		Animator?.Simulate();
-		ActiveWeapon?.Simulate( cl );
-		EyeLocalPosition = Vector3.Up * (64f * Scale);
-
-			if ( Input.Pressed( "Flashlight" ) )
-			{
-				if ( Game.IsServer )
-				{
-					ShootEnt();
-
-				}
-					
-			}
-			if ( Input.Pressed( "Slot1" ) || Input.Pressed( "Slot1" ) )
-			{
-
-				SwitchWeapon();
-			
-			}
-
-			if ( Input.Pressed( "drop" ) )
-			{
-
-				Log.Info("daw");
-
-			}
-
-			if ( LifeState == LifeState.Dead )
-			{
-				if ( timeSinceDied > 3 && Game.IsServer )
-				{
-					Respawn();
-				}
-
-				return;
-			}
-
-		}
-
-
-		
-
-		public override void OnKilled()
-	{
-
-		GameManager.Current?.OnKilled( this );
-
-		timeSinceDied = 0;
-		LifeState = LifeState.Dead;
-		EnableAllCollisions = false;
-		EnableDrawing = false;
-		base.OnKilled();
-		BecomeRagdollOnClient( LastDamage.Force, LastDamage.BoneIndex );
-
-		}
-		protected virtual void CreateHull()
-	{
-		SetupPhysicsFromAABB( PhysicsMotionType.Keyframed, new Vector3( -16f, -16f, 0f ), new Vector3( 16f, 16f, 72f ) );
+		// TODO - investigate this? if we don't set movetype then the lerp is too much. Can we control lerp amount?
+		// if so we should expose that instead, that would be awesome.
 		EnableHitboxes = true;
 	}
-
+	DamageInfo LastDamage;
 	public override void TakeDamage( DamageInfo info )
 	{
+		if ( Game.IsClient ) return;
+		Event.Run( "Player.PreTakeDamage", info, this );
+		LastDamage = info;
+		LastAttacker = info.Attacker;
+		LastAttackerWeapon = info.Weapon;
 
-			LastDamage = info;
-		if ( info.Hitbox.HasTag( "head" ) )
+		
+		if ( Health > 0f && LifeState == LifeState.Alive )
 		{
-			info.Damage *= 2f;
+
+			
+
+			if(!info.HasTag( "fall" ) )
+			{
+				info.Damage -= TakeArmor( info.Damage );
+			}
+				
+
+			
+			Health -= info.Damage;
+			if ( Health <= 0f )
+			{
+				Health = 0f;
+				OnKilled();
+			}
+			
+		}
+		Event.Run( "Player.PostTakeDamage", info, this );
+	}
+	public override void OnKilled()
+	{
+		if ( Game.IsClient ) return;
+		Event.Run( "Player.PreOnKilled", this );
+		LifeState = LifeState.Dead;
+		BecomeRagdoll( LastDamage );
+
+		Inventory.ActiveChild = null;
+		Inventory.ActiveChildInput = null;
+		if ( Game.IsServer )
+		{
+			EnableAllCollisions = false;
+			EnableDrawing = false;
+			Inventory.DropItem( Inventory.ActiveChild );
+			foreach ( var item in Inventory.Items.ToList() )
+			{
+				Inventory.DropItem( item );
+			}
+			Inventory.Items.Clear();
+			Components.Add( new NoclipController() );
 		}
 
-	
+		timeSinceDied = 0;
 
-		if ( LifeState == LifeState.Alive )
-		{
-			base.TakeDamage( info );
-
-			this.ProceduralHitReaction( info );
-		}
+		Event.Run( "Player.PostOnKilled", this );
 	}
 
+	//---------------------------------------------// 
 
+	/// <summary>
+	/// Pawns get a chance to mess with the input. This is called on the client.
+	/// </summary>
 	public override void BuildInput()
 	{
-		InputDirection = Input.AnalogMove;
+		base.BuildInput();
+		// these are to be done in order and before the simulated components
+		CameraController?.BuildInput();
+		MovementController?.BuildInput();
+		AnimationController?.BuildInput();
 
-		if ( Input.StopProcessing )
+		foreach ( var i in Components.GetAll<SimulatedComponent>() )
+		{
+			if ( i.Enabled ) i.BuildInput();
+		}
+	}
+
+	//Shoot entity
+	void ShootEnt()
+	{
+
+		var ent = new BaseItem
+		{
+			Position = EyePosition + EyeRotation.Forward * 50,
+			Rotation = EyeRotation
+
+		};
+
+		ent.Velocity = EyeRotation.Forward * 500;
+
+	}
+
+
+
+
+	/// <summary>
+	/// Called every tick, clientside and serverside.
+	/// </summary>
+	/// 
+	TimeSince timeSinceDied;
+	public override void Simulate( IClient cl )
+	{
+		base.Simulate( cl );
+
+		//Shoot entity
+		if ( Input.Pressed( "Flashlight" ) )
+		{
+			if ( Game.IsServer )
+			{
+				ShootEnt();
+
+			}
+
+		}
+
+
+		// toggleable third person
+		if ( Input.Pressed( "View" ) && Game.IsServer )
+		{
+			if ( CameraController is FirstPersonCamera )
+			{
+				Components.Add( new ThirdPersonCamera() );
+			}
+			else if ( CameraController is ThirdPersonCamera )
+			{
+				Components.Add( new FirstPersonCamera() );
+			}
+		}
+		if ( Game.IsClient )
+		{
+			if ( Input.MouseWheel > 0.1 )
+			{
+				Inventory?.SwitchActiveSlot( 1, true );
+			}
+			if ( Input.MouseWheel < -0.1 )
+			{
+				Inventory?.SwitchActiveSlot( -1, true );
+			}
+		}
+
+		if ( LifeState == LifeState.Dead )
+		{
+			if ( timeSinceDied > 5 && Game.IsServer )
+			{
+				Respawn();
+			}
+
+			return;
+		}
+		// these are to be done in order and before the simulated components
+		UnstuckController?.Simulate( cl );
+		MovementController?.Simulate( cl );
+		CameraController?.Simulate( cl );
+		AnimationController?.Simulate( cl );
+		foreach ( var i in Components.GetAll<SimulatedComponent>() )
+		{
+			if ( i.Enabled ) i.Simulate( cl );
+		}
+	}
+
+	/// <summary>
+	/// Called every frame on the client
+	/// </summary>
+	public override void FrameSimulate( IClient cl )
+	{
+		base.FrameSimulate( cl );
+		// these are to be done in order and before the simulated components
+		UnstuckController?.FrameSimulate( cl );
+		MovementController?.FrameSimulate( cl );
+		CameraController?.FrameSimulate( cl );
+		AnimationController?.FrameSimulate( cl );
+		foreach ( var i in Components.GetAll<SimulatedComponent>() )
+		{
+			if ( i.Enabled ) i.FrameSimulate( cl );
+		}
+
+
+		if ( Inventory.ActiveChild is Carriable item )
+		{
+			item.UpdateCamera();
+		}
+	}
+	TimeSince timeSinceLastFootstep = 0;
+	public override void OnAnimEventFootstep( Vector3 position, int foot, float volume )
+	{
+		if ( LifeState != LifeState.Alive )
 			return;
 
-		var look = Input.AnalogLook;
+		if ( Game.IsServer )
+			return;
 
-		if ( ViewAngles.pitch > 90f || ViewAngles.pitch < -90f )
-		{
-			look = look.WithYaw( look.yaw * -1f );
-		}
-
-		var viewAngles = ViewAngles;
-		viewAngles += look;
-		viewAngles.pitch = viewAngles.pitch.Clamp( -89f, 89f );
-		viewAngles.roll = 0f;
-		ViewAngles = viewAngles.Normal;
+		if ( timeSinceLastFootstep < 0.2f )
+			return;
+		volume *= FootstepVolume();
+		var tr = Trace.Ray( position, position + Vector3.Down * 20 ).Radius( 1 ).Ignore( this ).Run();
+		if ( !tr.Hit ) return;
+		timeSinceLastFootstep = 0;
+		tr.Surface.DoFootstep( this, tr, foot, volume * 10 );
 	}
 
-
-		void ShootEnt()
-		{
-			
-			var ent = new MoneyPrinter
-			{
-				Position = EyePosition + EyeRotation.Forward * 50,
-				Rotation = EyeRotation
-
-			};
-			ent.Velocity = EyeRotation.Forward * 500;
-
-		}
-
-		public virtual void DoFallDamage( TimeSince timeSinceFalling, Vector3 velocity )
-		{
-			if ( velocity.z > -600 ) return;
-
-			timeSinceFalling /= 2;
-			velocity /= 12;
-			var damageInfo = new DamageInfo()
-			{
-				Damage = Math.Abs( velocity.z ) * (1 + timeSinceFalling),
-				Force = velocity
-			};
-
-			TakeDamage( damageInfo );
-		}
-
-
-
-
-		
-
-
-
-
-		public override void FrameSimulate( IClient cl )
+	public virtual float FootstepVolume()
 	{
-			SimulateRotation();
-
-			
-		Camera.Rotation = ViewAngles.ToRotation();
-		Camera.FieldOfView = Screen.CreateVerticalFieldOfView( Game.Preferences.FieldOfView );
-
-		
-
-
-
-			Camera.FirstPersonViewer = this;
-			Camera.Position = EyePosition;
-		
-	}
-
-	public TraceResult TraceBBox( Vector3 start, Vector3 end, float liftFeet = 0.0f )
-	{
-		return TraceBBox( start, end, Hull.Mins, Hull.Maxs, liftFeet );
-	}
-
-	public TraceResult TraceBBox( Vector3 start, Vector3 end, Vector3 mins, Vector3 maxs, float liftFeet = 0.0f )
-	{
-		if ( liftFeet > 0 )
+		if ( MovementController is WalkController wlk )
 		{
-			start += Vector3.Up * liftFeet;
-			maxs = maxs.WithZ( maxs.z - liftFeet );
+			if ( wlk.IsDucking ) return 0.3f;
 		}
-
-		var tr = Trace.Ray( start, end )
-					.Size( mins, maxs )
-					.WithAnyTags( "solid", "playerclip", "passbullets" )
-					.Ignore( this )
-					.Run();
-
-		return tr;
+		return 1;
 	}
-
-	protected void SimulateRotation()
-	{
-		EyeRotation = ViewAngles.ToRotation();
-		Rotation = ViewAngles.WithPitch( 0f ).ToRotation();
-	}
-}
 }
