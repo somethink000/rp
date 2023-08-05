@@ -1,12 +1,12 @@
 iconpanel {
-    font-family: "Material Icons";
+    font-family: Arial;
 }
 
-$rounding: 4px;
+$rounding: 2px;
 
-GameChat {
+Chat {
     position: absolute;
-    bottom: -16px;
+    top: -16px;
     left: 32px;
     z-index: 1001;
     flex-direction: column;
@@ -23,13 +23,14 @@ GameChat {
         flex-shrink: 0;
         min-height: 44px;
         opacity: 0;
-        background-color: rgba( #090d10, 0.9 );
+        background-color: rgba( 0,0,0,0.6 );
         border-radius: $rounding;
+        border-bottom: 1px, white;
         margin-bottom: 28px;
     }
 
     .placeholder {
-        color: #c0cee7;
+         color: #c0cee7;
     }
 
     .content-label {
@@ -37,11 +38,10 @@ GameChat {
     }
 
     .placeholder, .content-label {
-        color: darken( #c0cee7, 20% );
+        color: white;
         font-size: 14px;
         font-family: Poppins;
         font-weight: 400;
-        text-shadow: 2px 2px 1px rgba( black, 0.1 );
         margin-top: 11px;
     }
 
@@ -55,11 +55,12 @@ GameChat {
             color: white;
             opacity: 1;
             flex-shrink: 0;
-            background-color: rgba( #090d10, 0.9 );
+            background-color: rgba( 0,0,0, 0.8 );
             padding: 4px 10px;
-            border-radius: $rounding;
+            border-radius: 2px;
             transition: opacity 0.15s ease;
             margin-bottom: 6px;
+            border-bottom: 1px, white;
 
             .header {
                 flex-shrink: 0;
@@ -68,7 +69,7 @@ GameChat {
                 margin-top: 3px;
                 font-weight: 700;
                 font-size: 16px;
-                color: $blue;
+                color: white;
                 padding-right: 8px;
                 text-shadow: 2px 2px 1px rgba( black, 0.3 );
             }
@@ -115,9 +116,9 @@ GameChat {
     &.open {
         pointer-events: all;
         backdrop-filter-blur: 20px;
-        background-image: linear-gradient( to top, rgba( #1b1b35, 0.9 ), rgba( #1c1c38, 0.85 ), rgba( #1c1c38, 0.8 ) 80%, rgba( #1c1c38, 0.5 ) );
+        background-color: rgba( 0,0,0, 0.5 );
         bottom: 0;
-        border-radius: $rounding $rounding 0 0;
+        border-radius: 2px 2px 0 0;
 
         textentry {
             opacity: 1;
@@ -126,7 +127,7 @@ GameChat {
         }
 
         .canvas {
-            GameChatRow {
+            ChatRow {
                 transition: opacity 0.1s ease;
                 opacity: 1;
             }

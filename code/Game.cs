@@ -18,7 +18,7 @@ public partial class MyGame : GameManager
 	{
 		if ( Game.IsServer )
 		{
-			_ = new HUD();
+			_ = new HUDEntity();
 		}
 	}
 

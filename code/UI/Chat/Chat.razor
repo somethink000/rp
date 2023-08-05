@@ -4,23 +4,21 @@
 @using System.Collections.Generic;
 @using System.Linq;
 
-
-@namespace Sandbox
+@namespace MyGame
 
 <root>
 	<div class="canvas" @ref=Canvas />
 	<TextEntry @ref=Input onsubmit=@Submit onblur=@Close />
 </root>
 
-
 @code
 {
-	public static GameChat Current;
+	public static Chat Current;
 
 	public Panel Canvas { get; protected set; }
 	public TextEntry Input { get; protected set; }
 
-	Queue<GameChatRow> Rows = new();
+	Queue<ChatRow> Rows = new();
 
 	protected int MaxItems => 100;
 	protected float MessageLifetime => 10f;
@@ -82,17 +80,16 @@
 		Close();
 
 		if ( string.IsNullOrWhiteSpace( msg ) ) return;
-		Log.Info("adaswd");
+
 		Say( msg );
 	}
 
 	public void AddEntry( string name, string message, long playerId = 0, bool isInfo = false )
 	{
-		var e = Canvas.AddChild<GameChatRow>();
+		var e = Canvas.AddChild<ChatRow>();
+
 		var player = Game.LocalPawn;
 		if ( !player.IsValid() ) return;
-
-
 
 		if ( playerId > 0 )
 			e.PlayerId = playerId;
@@ -109,9 +106,8 @@
 			e.SetClass( "friend", cl.IsFriend || Game.SteamId == playerId );
 
 		Canvas.TryScrollToBottom();
-		
-		Rows.Enqueue( e );
 
+		Rows.Enqueue( e );
 
 		// Kill an item if we need to
 		if ( Rows.Count > MaxItems )
