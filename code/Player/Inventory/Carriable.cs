@@ -48,15 +48,6 @@ public partial class Carriable : AnimatedEntity
 		ViewModelEntity.SetModel( ViewModelPath );
 	}
 
-
-	public virtual void UpdateCamera()
-	{
-		if ( ViewModelEntity is PlayerViewModel viewModel )
-		{
-			viewModel.UpdateCamera();
-		}
-	}
-
 	/// <summary>
 	/// We're done with the viewmodel - delete it
 	/// </summary>

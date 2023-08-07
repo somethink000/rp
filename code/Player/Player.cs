@@ -237,22 +237,6 @@ partial class Player : AnimatedEntity
 		}
 	}
 
-	//Shoot entity
-	void ShootEnt()
-	{
-
-		var ent = new BaseItem
-		{
-			Position = EyePosition + EyeRotation.Forward * 50,
-			Rotation = EyeRotation
-
-		};
-
-		ent.Velocity = EyeRotation.Forward * 500;
-
-	}
-
-
 
 
 	/// <summary>
@@ -263,17 +247,6 @@ partial class Player : AnimatedEntity
 	public override void Simulate( IClient cl )
 	{
 		base.Simulate( cl );
-
-		//Shoot entity
-		if ( Input.Pressed( "Flashlight" ) )
-		{
-			if ( Game.IsServer )
-			{
-				ShootEnt();
-
-			}
-
-		}
 
 
 		// toggleable third person
@@ -337,10 +310,6 @@ partial class Player : AnimatedEntity
 		}
 
 
-		if ( Inventory.ActiveChild is Carriable item )
-		{
-			item.UpdateCamera();
-		}
 	}
 	TimeSince timeSinceLastFootstep = 0;
 	public override void OnAnimEventFootstep( Vector3 position, int foot, float volume )

@@ -20,6 +20,7 @@ public class HUDRootPanel : RootPanel
 		AddChild<Crosshair>();
 		AddChild<Health>();
 		AddChild<AmmoUI>();
+		AddChild<Fmenu>();
 
 		AddChild<VoiceList>();
 		AddChild<VoiceSpeaker>();

@@ -1,0 +1,68 @@
+@using Sandbox.UI;
+@using Sandbox;
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+
+@namespace MyGame
+
+<root>
+	<div class="canvas" @ref=Canvas />
+</root>
+
+@code
+{
+    public static Fmenu Current;
+
+    public Panel Canvas { get; protected set; }
+
+
+    public bool IsOpen
+    {
+        get => HasClass( "open" );
+        set
+        {
+            SetClass( "open", value );
+        }
+    }
+
+    protected override void OnAfterTreeRender( bool firstTime )
+    {
+        base.OnAfterTreeRender( firstTime );
+
+        Canvas.PreferScrollToBottom = true;
+
+        Current = this;
+    }
+
+    public override void Tick()
+    {
+        if ( Sandbox.Input.Pressed( "Flashlight" ))
+        {
+            if (IsOpen)
+            {
+                Close();
+            }
+            else
+            {
+                
+                Open();
+            }
+        }
+
+			
+
+	}
+
+	void Open()
+	{
+		AddClass( "open" );
+		Canvas.TryScrollToBottom();
+	}
+
+	void Close()
+	{
+		RemoveClass( "open" );
+	}
+
+}
