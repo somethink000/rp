@@ -7,7 +7,6 @@
 @namespace MyGame
 
 <root>
-   
      <panel class="navpanel">
 	
 	 </panel>
@@ -18,7 +17,7 @@
 
 @code
 {
-    public static Fmenu Current;
+    public static TabMenu Current;
 
 
     public bool IsOpen
@@ -39,20 +38,8 @@
 
     public override void Tick()
     {
-        if ( Sandbox.Input.Pressed( "Flashlight" ))
-        {
-            if (IsOpen)
-            {
-                Close();
-            }
-            else
-            {
-                
-                Open();
-            }
-        }
-
-			
+        if ( Sandbox.Input.Down( "Score" ))
+        { Open(); }else{ Close(); }
 
 	}
 

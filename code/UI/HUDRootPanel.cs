@@ -21,6 +21,7 @@ public class HUDRootPanel : RootPanel
 		AddChild<Health>();
 		AddChild<AmmoUI>();
 		AddChild<Fmenu>();
+		AddChild<TabMenu>();
 
 		AddChild<VoiceList>();
 		AddChild<VoiceSpeaker>();
